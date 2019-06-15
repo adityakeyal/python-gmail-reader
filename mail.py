@@ -83,15 +83,14 @@ class Utility:
             if isinstance(response_part, tuple):
                 msg = email.message_from_bytes((response_part[1]))
                 for m in msg.walk():
-                    email_subject = m['subject']
-                    email_from = m['from']
+                    response['subject'] = response.get('subject') or m['subject']
+                    response['from'] = response.get('from') or m['from']
+                    response['msg_id'] = response.get('msg_id') or m['Message-Id']
+                    response['recv_date'] = response.get('recv_date') or m['Date']
                     content = m.get_payload(decode=True)
-                    content_type = m['Content-Type']
 
-                    if email_from is not None:
-                        response['from']=email_from
-                    if email_subject is not None:
-                        response['subject']=email_subject
+
+
                     if content is not None:
                         if m.get_content_type() != 'application/octet-stream':
                            response['text']=content.decode("utf-8")
@@ -133,7 +132,8 @@ if __name__ == '__main__':
     m = ImapWrapper("imap.gmail.com")
     m.login("","")
     m.select_mail_box('"Inbox"')
-    ids = m.search(unread=False)
+    ids = m.search()
     for x in ids:
         content = m.fetch_mail(x)
         print(content)
+        # rfc822msgid:
