@@ -1,18 +1,8 @@
-
-
-import smtplib
-import time
-import imaplib
 import email
-import os
-from datetime import datetime,timedelta
+import imaplib
+from datetime import datetime, timedelta
+from json import load
 
-#
-# ORG_EMAIL   = "@<>.com"
-# FROM_EMAIL  = "" + ORG_EMAIL
-# FROM_PWD    = os.environ['USER_PASSWORD']
-# SMTP_SERVER = "imap.gmail.com"
-# SMTP_PORT   = 993
 
 class ImapWrapper:
 
@@ -93,7 +83,8 @@ class Utility:
 
                     if content is not None:
                         if m.get_content_type() != 'application/octet-stream':
-                           response['text']=content.decode("utf-8")
+                           response['content_type'] = m.get_content_type()
+                           response['text']=content.decode("utf-8",errors="ignore" )
                         else:
                             f = open(m.get_filename(),'wb')
                             f.write(content)
@@ -130,10 +121,15 @@ class Utility:
 
 if __name__ == '__main__':
     m = ImapWrapper("imap.gmail.com")
-    m.login("","")
+
+    credentials = {}
+    with open('credentials.json', 'rt', encoding='utf-8') as f:
+        credentials = load(f)
+    m.login(credentials['e'],credentials['pe'])
     m.select_mail_box('"Inbox"')
     ids = m.search()
     for x in ids:
         content = m.fetch_mail(x)
+
         print(content)
         # rfc822msgid:
